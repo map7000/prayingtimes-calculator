@@ -1,11 +1,10 @@
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import ru.mfilatov.functions.JulianDayCalculator;
 
-@Slf4j
+
 public class JulianDayCalculatorTest {
   @Test
   void compareResultsWithPrecalculatedData() {

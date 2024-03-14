@@ -1,7 +1,5 @@
 package ru.mfilatov.functions;
 
-import java.util.Date;
-
 public class JulianDayCalculator {
 
     /**
