@@ -5,21 +5,17 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class MathFunctions {
   private static final double HOURS_IN_DAY = 24.0;
-
   private static final double DEGREES_IN_CIRCLE = 360.0;
 
   public static double sin(double degrees) {
-
     return Math.sin(Math.toRadians(degrees));
   }
 
   public static double cos(double degrees) {
-
     return Math.cos(Math.toRadians(degrees));
   }
 
   public static double tan(double degrees) {
-
     return Math.tan(Math.toRadians(degrees));
   }
 
@@ -35,7 +31,6 @@ public class MathFunctions {
   }
 
   public static double acos(double x) {
-
     return Math.toDegrees(Math.acos(x));
   }
 
@@ -44,23 +39,18 @@ public class MathFunctions {
   }
 
   public static double acot(double x) {
-
     return Math.toDegrees(Math.atan(1.0 / x));
   }
 
   public static double atan2(double x, double y) {
-
     return Math.toDegrees(Math.atan2(x, y));
   }
 
   public static double modulo(double x, double y) {
-
     double mod = x % y;
 
     // if the sign are negative and modulo not zero, adjust result
-
     if (x < 0 && mod != 0) {
-
       mod += y;
     }
 
@@ -68,22 +58,18 @@ public class MathFunctions {
   }
 
   public static double fixAngle(double angle) {
-
     return modulo(angle, DEGREES_IN_CIRCLE);
   }
 
   public static double fixHour(double hour) {
-
     return modulo(hour, HOURS_IN_DAY);
   }
 
   public static double timeDiff(double time1, double time2) {
-
     return fixHour(time2 - time1);
   }
 
   public static Times dayPortion(Times times) {
-
     return new Times(
         times.imsak() / 24.0,
         times.fajr() / 24.0,

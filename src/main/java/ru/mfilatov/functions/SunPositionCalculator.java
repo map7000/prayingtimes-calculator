@@ -18,21 +18,13 @@ public class SunPositionCalculator {
    * @return
    */
   public SunPosition usnoMethod(double jd) {
-
     double D = jd - 2451545.0;
-
     double g = fixAngle(357.529 + 0.98560028 * D);
-
     double q = fixAngle(280.459 + 0.98564736 * D);
-
     double L = fixAngle(q + (1.915 * sin(g)) + (0.020 * sin(2 * g)));
-
     double e = 23.439 - 0.00000036 * D;
-
     double d = asin(sin(e) * sin(L));
-
     double ra = (atan2((cos(e) * sin(L)), (cos(L)))) / 15.0;
-
     double eqt = q / 15.0 - fixHour(ra);
 
     return new SunPosition(d, eqt);

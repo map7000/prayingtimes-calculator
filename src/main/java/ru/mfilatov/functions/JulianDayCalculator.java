@@ -32,10 +32,9 @@ public class JulianDayCalculator {
       year -= 1;
       month += 12;
     }
+    
     double A = Math.floor(year / 100.0);
-
     double B = 2 - A + Math.floor(A / 4.0);
-
     double JD =
         Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + B - 1524.5;
 
