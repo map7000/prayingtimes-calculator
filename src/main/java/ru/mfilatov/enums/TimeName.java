@@ -1,7 +1,9 @@
 package ru.mfilatov.enums;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor
 public enum TimeName {
   IMSAK("Imsak"),
