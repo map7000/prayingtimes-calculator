@@ -69,15 +69,4 @@ public class MathFunctions {
     return fixHour(time2 - time1);
   }
 
-  public static Times dayPortion(Times times) {
-    return new Times(
-        times.imsak() / 24.0,
-        times.fajr() / 24.0,
-        times.sunrise() / 24.0,
-        times.dhuhr() / 24.0,
-        times.asr() / 24.0,
-        times.sunset() / 24.0,
-        times.maghrib() / 24.0,
-        times.isha() / 24.0);
-  }
 }

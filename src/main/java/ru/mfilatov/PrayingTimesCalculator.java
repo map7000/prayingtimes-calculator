@@ -1,12 +1,5 @@
 package ru.mfilatov;
 
-import static ru.mfilatov.functions.MathFunctions.acos;
-import static ru.mfilatov.functions.MathFunctions.acot;
-import static ru.mfilatov.functions.MathFunctions.cos;
-import static ru.mfilatov.functions.MathFunctions.fixHour;
-import static ru.mfilatov.functions.MathFunctions.sin;
-import static ru.mfilatov.functions.MathFunctions.tan;
-
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import ru.mfilatov.enums.CalculationMethods;
@@ -19,6 +12,8 @@ import ru.mfilatov.functions.SunPositionCalculator.SunPosition;
 import java.time.OffsetDateTime;
 import java.util.Calendar;
 
+import static ru.mfilatov.functions.MathFunctions.*;
+
 @AllArgsConstructor
 public class PrayingTimesCalculator {
   private final OffsetDateTime time;
@@ -26,9 +21,6 @@ public class PrayingTimesCalculator {
   private final double latitude;
   private final double longitude;
   private final CalculationMethods method;
-
-  private static final Times DEFAULT_TIMES = new Times(5, 5, 6, 12, 13, 18, 18, 18);
-
   private final JulianDayCalculator julianDayCalculator = new JulianDayCalculator();
   private final SunPositionCalculator sunPositionCalculator = new SunPositionCalculator();
 
@@ -37,22 +29,19 @@ public class PrayingTimesCalculator {
         julianDayCalculator.getJulianDayNumberEdwardGrahamRichards(time.getYear(), time.getMonthValue(), time.getDayOfMonth())
             - longitude / (15 * 24.0);
 
-    var portionTimes = MathFunctions.dayPortion(DEFAULT_TIMES);
-
     var computedTimes =
-        computePrayerTimes(portionTimes, method, julianDate, latitude);
+        computePrayerTimes(method, julianDate, latitude);
 
     return adjustTimes(computedTimes, timeZone, longitude);
   }
 
-  public Times computePrayerTimes(
-      Times times, CalculationMethods method, double julianDate, double latitude) {
+  public Times computePrayerTimes(CalculationMethods method, double julianDate, double latitude) {
 
-    var sunPositionFajr = sunPositionCalculator.usnoMethod(julianDate + times.fajr());
-    var sunPositionSunrise = sunPositionCalculator.usnoMethod(julianDate + times.sunrise());
-    var sunPositionDhuhr = sunPositionCalculator.usnoMethod(julianDate + times.dhuhr());
-    var sunPositionAsr = sunPositionCalculator.usnoMethod(julianDate + times.asr());
-    var sunPositionSunset = sunPositionCalculator.usnoMethod(julianDate + times.sunset());
+    var sunPositionFajr = sunPositionCalculator.usnoMethod(julianDate + (double) 5 / 24);
+    var sunPositionSunrise = sunPositionCalculator.usnoMethod(julianDate + (double) 6 / 24);
+    var sunPositionDhuhr = sunPositionCalculator.usnoMethod(julianDate + (double) 12 / 24);
+    var sunPositionAsr = sunPositionCalculator.usnoMethod(julianDate + (double) 13 / 24);
+    var sunPositionSunset = sunPositionCalculator.usnoMethod(julianDate + (double) 18 / 24);
 
     var imsak = sunAngleTime(method.getTimes().imsak(), latitude, sunPositionFajr, true);
     var fajr = sunAngleTime(method.getTimes().fajr(), latitude, sunPositionFajr, true);
@@ -62,8 +51,9 @@ public class PrayingTimesCalculator {
     var sunset = sunAngleTime(riseSetAngle(0), latitude, sunPositionSunset, false);
     var maghrib = sunAngleTime(method.getTimes().maghrib(), latitude, sunPositionSunset, false);
     var isha = sunAngleTime(method.getTimes().isha(), latitude, sunPositionSunset, false);
+    var midnight = sunset + timeDiff(sunset, sunrise) / 2;
 
-    return new Times(imsak, fajr, sunrise, dhuhr, asr, sunset, maghrib, isha);
+    return new Times(imsak, fajr, sunrise, dhuhr, asr, sunset, maghrib, isha, midnight);
   }
 
   // compute mid-day time
@@ -127,6 +117,7 @@ public class PrayingTimesCalculator {
         times.asr() + tzAdjust,
         times.sunset() + tzAdjust,
         times.maghrib() + tzAdjust,
-        times.isha() + tzAdjust);
+        times.isha() + tzAdjust,
+            times.midnight() + tzAdjust);
   }
 }

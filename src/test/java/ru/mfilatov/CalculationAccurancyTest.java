@@ -9,10 +9,20 @@ import java.time.OffsetDateTime;
 
 @Slf4j
 public class CalculationAccurancyTest {
-    @Test
-    void checkMoscowTimeTest() {
-        double latitude = -37.823689;
-        double longitude = 145.121597;
+
+  //  imsak: '04:18',
+  //  fajr: '04:28',
+  //  sunrise: '06:21',
+  //  dhuhr: '12:36',
+  //  asr: '15:55',
+  //  sunset: '18:52',
+  //  maghrib: '18:52',
+  //  isha: '20:37',
+  //  midnight: '00:36'
+  @Test
+  void checkMoscowTimeTest() {
+        double latitude = 55.75222;
+        double longitude = 37.61556;
         int timezone = 3;
 
     PrayingTimesCalculator prayers = new PrayingTimesCalculator(OffsetDateTime.now(), timezone, latitude, longitude, CalculationMethods.RUSSIA);
@@ -25,5 +35,6 @@ public class CalculationAccurancyTest {
     log.info("{}: {}", TimeName.SUNSET, prayers.getFormattedTime(times.sunset()));
     log.info("{}: {}", TimeName.MAGHRIB, prayers.getFormattedTime(times.maghrib()));
     log.info("{}: {}", TimeName.ISHA, prayers.getFormattedTime(times.isha()));
+    log.info("{}: {}", TimeName.MIDNIGHT, prayers.getFormattedTime(times.midnight()));
     }
 }

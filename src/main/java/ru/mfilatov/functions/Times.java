@@ -8,4 +8,5 @@ public record Times(
     double asr,
     double sunset,
     double maghrib,
-    double isha) {}
+    double isha,
+    double midnight) {}
