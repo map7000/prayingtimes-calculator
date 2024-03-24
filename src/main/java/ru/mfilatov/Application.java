@@ -15,7 +15,6 @@ import ru.mfilatov.functions.SunPositionCalculator;
 import ru.mfilatov.functions.Times;
 import ru.mfilatov.functions.SunPositionCalculator.SunPosition;
 
-@Slf4j
 public class Application {
   public static JulianDayCalculator julianDayCalculator = new JulianDayCalculator();
   public static SunPositionCalculator sunPositionCalculator = new SunPositionCalculator();
@@ -33,16 +32,6 @@ public class Application {
     var computedTimes =
         computePrayerTimes(portionTimes, CalculationMethods.RUSSIA, julianDate, latitude);
     var adjustedTimes = adjustTimes(computedTimes, timeZone, longitude);
-
-    log.info("{}", adjustTimes(computedTimes, timeZone, longitude));
-    log.info("{}", computedTimes);
-    log.info(getFormattedTime(adjustedTimes.fajr()));
-    log.info(getFormattedTime(adjustedTimes.sunrise()));
-    log.info(getFormattedTime(adjustedTimes.dhuhr()));
-    log.info(getFormattedTime(adjustedTimes.asr()));
-    log.info(getFormattedTime(adjustedTimes.sunset()));
-    log.info(getFormattedTime(adjustedTimes.maghrib()));
-    log.info(getFormattedTime(adjustedTimes.isha()));
   }
 
   public static Times computePrayerTimes(
