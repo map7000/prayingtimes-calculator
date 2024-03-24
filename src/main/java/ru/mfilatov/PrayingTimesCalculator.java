@@ -7,7 +7,8 @@ import static ru.mfilatov.functions.MathFunctions.fixHour;
 import static ru.mfilatov.functions.MathFunctions.sin;
 import static ru.mfilatov.functions.MathFunctions.tan;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import ru.mfilatov.enums.CalculationMethods;
 import ru.mfilatov.functions.JulianDayCalculator;
 import ru.mfilatov.functions.MathFunctions;
@@ -15,26 +16,36 @@ import ru.mfilatov.functions.SunPositionCalculator;
 import ru.mfilatov.functions.Times;
 import ru.mfilatov.functions.SunPositionCalculator.SunPosition;
 
-public class Application {
-  public static JulianDayCalculator julianDayCalculator = new JulianDayCalculator();
-  public static SunPositionCalculator sunPositionCalculator = new SunPositionCalculator();
+import java.time.OffsetDateTime;
+import java.util.Calendar;
 
-  public static void main(String[] args) {
-    var latitude = 55.75222;
-    var longitude = 37.61556;
-    var timeZone = 3;
+@AllArgsConstructor
+public class PrayingTimesCalculator {
+  private final OffsetDateTime time;
+  private final int timeZone;
+  private final double latitude;
+  private final double longitude;
+  private final CalculationMethods method;
+
+  private static final Times DEFAULT_TIMES = new Times(5, 5, 6, 12, 13, 18, 18, 18);
+
+  private final JulianDayCalculator julianDayCalculator = new JulianDayCalculator();
+  private final SunPositionCalculator sunPositionCalculator = new SunPositionCalculator();
+
+  public Times calculate() {
     var julianDate =
-        julianDayCalculator.getJulianDayNumberEdwardGrahamRichards(2024, 3, 14)
+        julianDayCalculator.getJulianDayNumberEdwardGrahamRichards(time.getYear(), time.getMonthValue(), time.getDayOfMonth())
             - longitude / (15 * 24.0);
-    var defaultTimes = new Times(5, 5, 6, 12, 13, 18, 18, 18);
-    var portionTimes = MathFunctions.dayPortion(defaultTimes);
+
+    var portionTimes = MathFunctions.dayPortion(DEFAULT_TIMES);
 
     var computedTimes =
-        computePrayerTimes(portionTimes, CalculationMethods.RUSSIA, julianDate, latitude);
-    var adjustedTimes = adjustTimes(computedTimes, timeZone, longitude);
+        computePrayerTimes(portionTimes, method, julianDate, latitude);
+
+    return adjustTimes(computedTimes, timeZone, longitude);
   }
 
-  public static Times computePrayerTimes(
+  public Times computePrayerTimes(
       Times times, CalculationMethods method, double julianDate, double latitude) {
 
     var sunPositionFajr = sunPositionCalculator.usnoMethod(julianDate + times.fajr());
@@ -56,19 +67,19 @@ public class Application {
   }
 
   // compute mid-day time
-  public static double midDay(SunPosition sunPosition) {
+  public double midDay(SunPosition sunPosition) {
     return MathFunctions.fixHour(12 - sunPosition.equation());
   }
 
   // return sun angle for sunset/sunrise
-  public static double riseSetAngle(double time) {
+  public double riseSetAngle(double time) {
     var elevation = time;
 
     return 0.833 + 0.0347 * Math.sqrt(elevation);
   }
 
   // get asr shadow factor
-  public static double asrFactor(double time) {
+  public double asrFactor(double time) {
     //    def asrFactor(self, asrParam):
     //        methods = {'Standard': 1, 'Hanafi': 2}
     //        return methods[asrParam] if asrParam in methods else self.eval(asrParam)
@@ -77,7 +88,7 @@ public class Application {
   }
 
   // compute the time at which sun reaches a specific angle below horizon
-  public static double sunAngleTime(
+  public double sunAngleTime(
       double angle, double latitude, SunPosition sunPosition, boolean directionCCW) {
 
     var declination = sunPosition.declination();
@@ -90,14 +101,14 @@ public class Application {
   }
 
   // compute asr time
-  public static double asrTime(double factor, double latitude, SunPosition sunPosition) {
+  public double asrTime(double factor, double latitude, SunPosition sunPosition) {
     var declination = sunPosition.declination();
     var angle = -acot(factor + tan(Math.abs(latitude - declination)));
 
     return sunAngleTime(angle, latitude, sunPosition, false);
   }
 
-  public static String getFormattedTime(double timeFloat) {
+  public String getFormattedTime(double timeFloat) {
     var time = fixHour(timeFloat + 0.5 / 60);
     var hours = Math.floor(time);
     var minutes = Math.floor((time - hours) * 60);
@@ -105,7 +116,7 @@ public class Application {
     return String.format("%02d:%02d", Math.round(hours), Math.round(minutes));
   }
 
-  public static Times adjustTimes(Times times, double timeZone, double longitude) {
+  public Times adjustTimes(Times times, double timeZone, double longitude) {
     var tzAdjust = timeZone - longitude / 15.0;
 
     return new Times(

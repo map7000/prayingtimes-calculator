@@ -1,40 +1,29 @@
 package ru.mfilatov;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import ru.mfilatov.enums.CalculationMethods;
+import ru.mfilatov.enums.TimeName;
 
-import ru.mfilatov.original.PrayTime;
+import java.time.OffsetDateTime;
 
+@Slf4j
 public class CalculationAccurancyTest {
     @Test
     void checkMoscowTimeTest() {
         double latitude = -37.823689;
         double longitude = 145.121597;
-        double timezone = 3;
-        // Test Prayer times here
-        PrayTime prayers = new PrayTime();
+        int timezone = 3;
 
-        prayers.setTimeFormat(prayers.Time12);
-        prayers.setCalcMethod(prayers.Jafari);
-        prayers.setAsrJuristic(prayers.Shafii);
-        prayers.setAdjustHighLats(prayers.AngleBased);
-        int[] offsets = {0, 0, 0, 0, 0, 0, 0}; // {Fajr,Sunrise,Dhuhr,Asr,Sunset,Maghrib,Isha}
-        prayers.tune(offsets);
-
-        Date now = new Date();
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(now);
-
-        ArrayList<String> prayerTimes = prayers.getPrayerTimes(cal,
-                latitude, longitude, timezone);
-        ArrayList<String> prayerNames = prayers.getTimeNames();
-
-        for (int i = 0; i < prayerTimes.size(); i++) {
-            System.out.println(prayerNames.get(i) + " - " + prayerTimes.get(i));
-        }
-
+    PrayingTimesCalculator prayers = new PrayingTimesCalculator(OffsetDateTime.now(), timezone, latitude, longitude, CalculationMethods.RUSSIA);
+    var times = prayers.calculate();
+    log.info("{}: {}", TimeName.IMSAK, prayers.getFormattedTime(times.imsak()));
+    log.info("{}: {}", TimeName.FAJR, prayers.getFormattedTime(times.fajr()));
+    log.info("{}: {}", TimeName.SUNRISE, prayers.getFormattedTime(times.sunrise()));
+    log.info("{}: {}", TimeName.DHUHR, prayers.getFormattedTime(times.dhuhr()));
+    log.info("{}: {}", TimeName.ASR, prayers.getFormattedTime(times.asr()));
+    log.info("{}: {}", TimeName.SUNSET, prayers.getFormattedTime(times.sunset()));
+    log.info("{}: {}", TimeName.MAGHRIB, prayers.getFormattedTime(times.maghrib()));
+    log.info("{}: {}", TimeName.ISHA, prayers.getFormattedTime(times.isha()));
     }
 }
