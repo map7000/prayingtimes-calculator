@@ -1,22 +1,25 @@
 package ru.mfilatov;
 
+import static ru.mfilatov.functions.MathFunctions.*;
+
+import java.time.*;
+
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import ru.mfilatov.constants.SunPositionOffsets;
 import ru.mfilatov.enums.CalculationMethods;
+import ru.mfilatov.enums.TimeName;
 import ru.mfilatov.functions.JulianDayCalculator;
 import ru.mfilatov.functions.MathFunctions;
 import ru.mfilatov.functions.SunPositionCalculator;
-import ru.mfilatov.functions.Times;
 import ru.mfilatov.functions.SunPositionCalculator.SunPosition;
-
-import java.time.OffsetDateTime;
-import java.util.Calendar;
-
-import static ru.mfilatov.functions.MathFunctions.*;
+import ru.mfilatov.model.Times;
+import ru.mfilatov.model.TimesDouble;
 
 @AllArgsConstructor
 public class PrayingTimesCalculator {
-  private final OffsetDateTime time;
+  private static final double HOURS_IN_DAY = 24.0;
+
+  private final LocalDate time;
   private final int timeZone;
   private final double latitude;
   private final double longitude;
@@ -32,28 +35,44 @@ public class PrayingTimesCalculator {
     var computedTimes =
         computePrayerTimes(method, julianDate, latitude);
 
-    return adjustTimes(computedTimes, timeZone, longitude);
+    var adjustedTimes = adjustTimes(computedTimes, timeZone, longitude);
+
+    return convertToTimes(adjustedTimes);
   }
 
-  public Times computePrayerTimes(CalculationMethods method, double julianDate, double latitude) {
+  public TimesDouble computePrayerTimes(CalculationMethods method, double julianDate, double latitude) {
 
-    var sunPositionFajr = sunPositionCalculator.usnoMethod(julianDate + (double) 5 / 24);
-    var sunPositionSunrise = sunPositionCalculator.usnoMethod(julianDate + (double) 6 / 24);
-    var sunPositionDhuhr = sunPositionCalculator.usnoMethod(julianDate + (double) 12 / 24);
-    var sunPositionAsr = sunPositionCalculator.usnoMethod(julianDate + (double) 13 / 24);
-    var sunPositionSunset = sunPositionCalculator.usnoMethod(julianDate + (double) 18 / 24);
+    var sunPositionFajr = sunPositionCalculator.usnoMethod(julianDate + SunPositionOffsets.FAJR / HOURS_IN_DAY);
+    var sunPositionSunrise = sunPositionCalculator.usnoMethod(julianDate + SunPositionOffsets.SUNRISE / HOURS_IN_DAY);
+    var sunPositionDhuhr = sunPositionCalculator.usnoMethod(julianDate + SunPositionOffsets.DHUHR / HOURS_IN_DAY);
+    var sunPositionAsr = sunPositionCalculator.usnoMethod(julianDate + SunPositionOffsets.ASR / HOURS_IN_DAY);
+    var sunPositionSunset = sunPositionCalculator.usnoMethod(julianDate + SunPositionOffsets.SUNSET / HOURS_IN_DAY);
 
-    var imsak = sunAngleTime(method.getTimes().imsak(), latitude, sunPositionFajr, true);
-    var fajr = sunAngleTime(method.getTimes().fajr(), latitude, sunPositionFajr, true);
+    var fajr = sunAngleTime(method.getAngleOffset().getOrDefault(TimeName.FAJR, SunPositionOffsets.FAJR), latitude, sunPositionFajr, true);
+
+    var imsak = method.getMinutesOffset().containsKey(TimeName.IMSAK) ?
+            fajr - method.getMinutesOffset().get(TimeName.IMSAK)/ 60 :
+            sunAngleTime(method.getAngleOffset().getOrDefault(TimeName.IMSAK, SunPositionOffsets.FAJR), latitude, sunPositionFajr, true);
+
     var sunrise = sunAngleTime(riseSetAngle(0), latitude, sunPositionSunrise, true);
-    var dhuhr = midDay(sunPositionDhuhr);
-    var asr = asrTime(asrFactor(method.getTimes().asr()), latitude, sunPositionAsr);
+
+    var dhuhr = midDay(sunPositionDhuhr) + method.getMinutesOffset().getOrDefault(TimeName.DHUHR, 0.0) / 60.0;
+
+    var asr = asrTime(asrFactor(method.getAngleOffset().getOrDefault(TimeName.ASR, SunPositionOffsets.ASR)), latitude, sunPositionAsr);
+
     var sunset = sunAngleTime(riseSetAngle(0), latitude, sunPositionSunset, false);
-    var maghrib = sunAngleTime(method.getTimes().maghrib(), latitude, sunPositionSunset, false);
-    var isha = sunAngleTime(method.getTimes().isha(), latitude, sunPositionSunset, false);
+
+    var maghrib = method.getMinutesOffset().containsKey(TimeName.MAGHRIB) ?
+            sunset + method.getMinutesOffset().get(TimeName.MAGHRIB) / 60 :
+            sunAngleTime(method.getAngleOffset().getOrDefault(TimeName.MAGHRIB, SunPositionOffsets.SUNSET), latitude, sunPositionSunset, false);
+
+    var isha = method.getMinutesOffset().containsKey(TimeName.ISHA) ?
+            maghrib + method.getMinutesOffset().get(TimeName.ISHA) / 60 :
+            sunAngleTime(method.getAngleOffset().getOrDefault(TimeName.ISHA, SunPositionOffsets.SUNSET), latitude, sunPositionSunset, false);
+
     var midnight = sunset + timeDiff(sunset, sunrise) / 2;
 
-    return new Times(imsak, fajr, sunrise, dhuhr, asr, sunset, maghrib, isha, midnight);
+    return new TimesDouble(imsak, fajr, sunrise, dhuhr, asr, sunset, maghrib, isha, midnight);
   }
 
   // compute mid-day time
@@ -98,18 +117,41 @@ public class PrayingTimesCalculator {
     return sunAngleTime(angle, latitude, sunPosition, false);
   }
 
-  public String getFormattedTime(double timeFloat) {
-    var time = fixHour(timeFloat + 0.5 / 60);
-    var hours = Math.floor(time);
-    var minutes = Math.floor((time - hours) * 60);
+  public OffsetDateTime getFormattedTime(double timeFloat) {
+    var time = timeFloat + 0.5 / 60;
+    boolean isNextDay = timeFloat > 24;
+    time = fixHour(time);
 
-    return String.format("%02d:%02d", Math.round(hours), Math.round(minutes));
+    int hours = (int) Math.floor(time);
+    int minutes = (int) Math.floor((time - hours) * 60);
+
+    var result = OffsetDateTime.of(LocalDateTime.of(this.time, LocalTime.of(hours, minutes)), ZoneOffset.ofHours(timeZone));
+
+    if (isNextDay) {
+      result = result.plusDays(1L);
+    }
+
+    return result;
   }
 
-  public Times adjustTimes(Times times, double timeZone, double longitude) {
+  private Times convertToTimes(TimesDouble times) {
+    return new Times(
+            getFormattedTime(times.imsak()),
+            getFormattedTime(times.fajr()),
+            getFormattedTime(times.sunrise()),
+            getFormattedTime(times.dhuhr()),
+            getFormattedTime(times.asr()),
+            getFormattedTime(times.sunset()),
+            getFormattedTime(times.maghrib()),
+            getFormattedTime(times.isha()),
+            getFormattedTime(times.midnight())
+    );
+  }
+
+  public TimesDouble adjustTimes(TimesDouble times, double timeZone, double longitude) {
     var tzAdjust = timeZone - longitude / 15.0;
 
-    return new Times(
+    return new TimesDouble(
         times.imsak() + tzAdjust,
         times.fajr() + tzAdjust,
         times.sunrise() + tzAdjust,

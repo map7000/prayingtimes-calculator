@@ -1,6 +1,6 @@
-package ru.mfilatov.functions;
+package ru.mfilatov.model;
 
-public record Times(
+public record TimesDouble(
     double imsak,
     double fajr,
     double sunrise,
