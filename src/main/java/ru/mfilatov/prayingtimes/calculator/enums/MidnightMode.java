@@ -17,19 +17,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-const fs = require('node:fs');
+package ru.mfilatov.prayingtimes.calculator.enums;
 
-eval(fs.readFileSync('PrayTimes.js').toString())
-prayTimes.setMethod("RUSSIA")
-console.log(prayTimes.getTimes(new Date(), [55.75222, 37.61556], 3))
-
-const content = prayTimes.getTimes(new Date(), [55.75222, 37.61556], 3);
-
-
-fs.writeFile('moscow.json', JSON.stringify(content), err => {
-    if (err) {
-      console.error(err);
-    } else {
-      // file written successfully
-    }
-  });
+public enum MidnightMode {
+  STANDARD, // Mid Sunset to Sunrise
+  JAFARI; // Mid Sunset to Fajr
+}

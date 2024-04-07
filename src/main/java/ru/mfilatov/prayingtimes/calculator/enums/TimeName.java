@@ -17,19 +17,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-const fs = require('node:fs');
+package ru.mfilatov.prayingtimes.calculator.enums;
 
-eval(fs.readFileSync('PrayTimes.js').toString())
-prayTimes.setMethod("RUSSIA")
-console.log(prayTimes.getTimes(new Date(), [55.75222, 37.61556], 3))
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-const content = prayTimes.getTimes(new Date(), [55.75222, 37.61556], 3);
+@Getter
+@AllArgsConstructor
+public enum TimeName {
+  IMSAK("Imsak"),
+  FAJR("Fajr"),
+  SUNRISE("Sunrise"),
+  DHUHR("Dhuhr"),
+  ASR("Asr"),
+  SUNSET("Sunset"),
+  MAGHRIB("Maghrib"),
+  ISHA("Isha"),
+  MIDNIGHT("Midnight");
 
-
-fs.writeFile('moscow.json', JSON.stringify(content), err => {
-    if (err) {
-      console.error(err);
-    } else {
-      // file written successfully
-    }
-  });
+  private final String name;
+}

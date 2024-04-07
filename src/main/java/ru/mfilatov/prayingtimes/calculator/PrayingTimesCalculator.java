@@ -1,19 +1,38 @@
-package ru.mfilatov;
+/*
+ * PrayingTimes Calculator
+ * Copyright (C) 2024 Mikhail Filatov
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
-import static ru.mfilatov.functions.MathFunctions.*;
+package ru.mfilatov.prayingtimes.calculator;
+
+import static ru.mfilatov.prayingtimes.calculator.functions.MathFunctions.*;
 
 import java.time.*;
 
 import lombok.AllArgsConstructor;
-import ru.mfilatov.constants.SunPositionOffsets;
-import ru.mfilatov.enums.CalculationMethods;
-import ru.mfilatov.enums.TimeName;
-import ru.mfilatov.functions.JulianDayCalculator;
-import ru.mfilatov.functions.MathFunctions;
-import ru.mfilatov.functions.SunPositionCalculator;
-import ru.mfilatov.functions.SunPositionCalculator.SunPosition;
-import ru.mfilatov.model.Times;
-import ru.mfilatov.model.TimesDouble;
+import ru.mfilatov.prayingtimes.calculator.constants.SunPositionOffsets;
+import ru.mfilatov.prayingtimes.calculator.enums.CalculationMethods;
+import ru.mfilatov.prayingtimes.calculator.enums.TimeName;
+import ru.mfilatov.prayingtimes.calculator.functions.JulianDayCalculator;
+import ru.mfilatov.prayingtimes.calculator.functions.MathFunctions;
+import ru.mfilatov.prayingtimes.calculator.functions.SunPositionCalculator;
+import ru.mfilatov.prayingtimes.calculator.functions.SunPositionCalculator.SunPosition;
+import ru.mfilatov.prayingtimes.calculator.model.Times;
+import ru.mfilatov.prayingtimes.calculator.model.TimesDouble;
 
 @AllArgsConstructor
 public class PrayingTimesCalculator {
