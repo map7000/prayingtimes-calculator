@@ -23,9 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-
 import ru.mfilatov.prayingtimes.calculator.functions.JulianDayCalculator;
-
 
 public class JulianDayCalculatorTest {
   @Test
