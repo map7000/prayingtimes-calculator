@@ -22,11 +22,11 @@ package ru.mfilatov.prayingtimes.calculator;
 import static ru.mfilatov.prayingtimes.calculator.functions.MathFunctions.*;
 
 import java.time.*;
+import java.util.Objects;
 
 import lombok.AllArgsConstructor;
 import ru.mfilatov.prayingtimes.calculator.constants.SunPositionOffsets;
-import ru.mfilatov.prayingtimes.calculator.enums.CalculationMethods;
-import ru.mfilatov.prayingtimes.calculator.enums.TimeName;
+import ru.mfilatov.prayingtimes.calculator.enums.*;
 import ru.mfilatov.prayingtimes.calculator.functions.JulianDayCalculator;
 import ru.mfilatov.prayingtimes.calculator.functions.MathFunctions;
 import ru.mfilatov.prayingtimes.calculator.functions.SunPositionCalculator;
@@ -54,6 +54,8 @@ public class PrayingTimesCalculator {
     var computedTimes =
         computePrayerTimes(method, julianDate, latitude);
 
+    var adjustedTimesHighLats = adjustHighLats(computedTimes, );
+
     var adjustedTimes = adjustTimes(computedTimes, timeZone, longitude);
 
     return convertToTimes(adjustedTimes);
@@ -77,7 +79,7 @@ public class PrayingTimesCalculator {
 
     var dhuhr = midDay(sunPositionDhuhr) + method.getMinutesOffset().getOrDefault(TimeName.DHUHR, 0.0) / 60.0;
 
-    var asr = asrTime(asrFactor(method.getAngleOffset().getOrDefault(TimeName.ASR, SunPositionOffsets.ASR)), latitude, sunPositionAsr);
+    var asr = asrTime(asrFactor(method.getAsrJuristicMethod()), latitude, sunPositionAsr);
 
     var sunset = sunAngleTime(riseSetAngle(0), latitude, sunPositionSunset, false);
 
@@ -89,7 +91,7 @@ public class PrayingTimesCalculator {
             maghrib + method.getMinutesOffset().get(TimeName.ISHA) / 60 :
             sunAngleTime(method.getAngleOffset().getOrDefault(TimeName.ISHA, SunPositionOffsets.SUNSET), latitude, sunPositionSunset, false);
 
-    var midnight = sunset + timeDiff(sunset, sunrise) / 2;
+    var midnight = method.getMidnightMode().equals(MidnightMode.JAFARI) ? sunset + timeDiff(sunset, fajr) / 2 : sunset + timeDiff(sunset, sunrise) / 2;
 
     return new TimesDouble(imsak, fajr, sunrise, dhuhr, asr, sunset, maghrib, isha, midnight);
   }
@@ -107,12 +109,8 @@ public class PrayingTimesCalculator {
   }
 
   // get asr shadow factor
-  public double asrFactor(double time) {
-    //    def asrFactor(self, asrParam):
-    //        methods = {'Standard': 1, 'Hanafi': 2}
-    //        return methods[asrParam] if asrParam in methods else self.eval(asrParam)
-
-    return 1;
+  public double asrFactor(AsrJuristicMethod asrJuristicMethod) {
+    return asrJuristicMethod.equals(AsrJuristicMethod.STANDARD) ? 1 : 2;
   }
 
   // compute the time at which sun reaches a specific angle below horizon
@@ -180,5 +178,66 @@ public class PrayingTimesCalculator {
         times.maghrib() + tzAdjust,
         times.isha() + tzAdjust,
             times.midnight() + tzAdjust);
+  }
+
+  // adjust times for locations in higher latitudes
+  public TimesDouble adjustHighLats(TimesDouble times, AdjustForHigherLatitudes adjustForHigherLatitudes) {
+    var nightTime = timeDiff(times.sunset(), times.sunrise());
+
+    return new TimesDouble(
+        adjustHLTime(
+            times.imsak(),
+            times.sunrise(),
+            SunPositionOffsets.SUNRISE,
+            nightTime,
+            true,
+            adjustForHigherLatitudes),
+        adjustHLTime(
+            times.fajr(),
+            times.sunrise(),
+            SunPositionOffsets.SUNRISE,
+            nightTime,
+            true,
+            adjustForHigherLatitudes),
+        times.sunrise(),
+        times.dhuhr(),
+        times.asr(),
+        times.sunset(),
+        adjustHLTime(
+            times.maghrib(),
+            times.sunset(),
+            SunPositionOffsets.SUNSET,
+            nightTime,
+            false,
+            adjustForHigherLatitudes),
+        adjustHLTime(
+            times.isha(),
+            times.sunset(),
+            SunPositionOffsets.SUNSET,
+            nightTime,
+            false,
+            adjustForHigherLatitudes),
+        times.midnight());
+  }
+
+  // the night portion used for adjusting times in higher latitudes
+  public double nightPortion(
+      double angle, double nightTime, AdjustForHigherLatitudes adjustForHigherLatitudes) {
+    if (adjustForHigherLatitudes.equals(AdjustForHigherLatitudes.ANGLE_BASED)) {
+      return 1.0 / 60.0 * angle * nightTime;
+    }
+    if (adjustForHigherLatitudes.equals(AdjustForHigherLatitudes.ONE_SEVENTH)) {
+      return 1.0/7.0 * nightTime;
+    }
+    return 1.0/2.0 * nightTime;
+  }
+
+  public double adjustHLTime(double time, double base, double angle, double night, boolean directionCCW, AdjustForHigherLatitudes adjustForHigherLatitudes) {
+    var portion = nightPortion(angle, night, adjustForHigherLatitudes);
+    var timeDiff = directionCCW ? timeDiff(time, base) : timeDiff(base, time);
+    if (time == 0 || timeDiff > portion) {
+        time = base + (directionCCW ? -portion : portion);
+    }
+    return time;
   }
 }
