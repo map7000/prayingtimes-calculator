@@ -48,10 +48,10 @@ public class JulianDayCalculator {
    */
   public double getJulianDayNumberJeanMeeus(int year, int month, int day) {
     if (month <= 2) {
-      year -= 1;
+      year --;
       month += 12;
     }
-    
+
     double A = Math.floor(year / 100.0);
     double B = 2 - A + Math.floor(A / 4.0);
     double JD =

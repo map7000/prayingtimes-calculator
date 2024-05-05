@@ -30,4 +30,4 @@ public record Times(
     OffsetDateTime sunset,
     OffsetDateTime maghrib,
     OffsetDateTime isha,
-    OffsetDateTime  midnight) {}
+    OffsetDateTime midnight) {}
