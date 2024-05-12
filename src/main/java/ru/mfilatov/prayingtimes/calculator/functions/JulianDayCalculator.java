@@ -23,11 +23,8 @@ public class JulianDayCalculator {
 
   /**
    * Convert Gregorian date to Julian day Algorithm by Edward Graham Richards from
-   * https://en.wikipedia.org/wiki/Julian_day
+   * <a href="https://en.wikipedia.org/wiki/Julian_day">...</a>
    *
-   * @param year
-   * @param month
-   * @param day
    * @return Julian day
    */
   public double getJulianDayNumberEdwardGrahamRichards(int year, int month, int day) {
@@ -35,28 +32,33 @@ public class JulianDayCalculator {
     long y = year + 4800L - a;
     long m = month + 12L * a - 3L;
 
-    return (day + ((153L * m + 2L) / 5L) + 365L * y + (y / 4L) - (y / 100L) + (y / 400L) - 32045.5);
+    return day
+        + Math.floorDiv(153L * m + 2L, 5)
+        + 365L * y
+        + Math.floorDiv(y, 4)
+        - Math.floorDiv(y, 100)
+        + Math.floorDiv(y, 400)
+        - 32045.5;
   }
 
   /**
    * Convert Gregorian date to Julian day Ref: Astronomical Algorithms by Jean Meeus
    *
-   * @param year
-   * @param month
-   * @param day
    * @return Julian day
    */
   public double getJulianDayNumberJeanMeeus(int year, int month, int day) {
     if (month <= 2) {
-      year --;
+      year--;
       month += 12;
     }
 
-    double A = Math.floor(year / 100.0);
-    double B = 2 - A + Math.floor(A / 4.0);
-    double JD =
-        Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + B - 1524.5;
+    int A = Math.floorDiv(year, 100);
+    int B = 2 - A + Math.floorDiv(A, 4);
 
-    return JD;
+    return Math.floor(365.25 * (year + 4716))
+        + Math.floor(30.6001 * (month + 1))
+        + day
+        + B
+        - 1524.5;
   }
 }

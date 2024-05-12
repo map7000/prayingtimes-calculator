@@ -36,14 +36,17 @@ import ru.mfilatov.prayingtimes.calculator.model.TimesDoubleBuilder;
 @AllArgsConstructor
 public class PrayingTimesCalculator {
   private static final double HOURS_IN_DAY = 24.0;
+  private static final double SUNRISE_SUNSET_ANGLE = 0.833;
+
+  private final JulianDayCalculator julianDayCalculator = new JulianDayCalculator();
+  private final SunPositionCalculator sunPositionCalculator = new SunPositionCalculator();
 
   private final LocalDate time;
   private final int timeZone;
   private final double latitude;
   private final double longitude;
   private final CalculationMethods method;
-  private final JulianDayCalculator julianDayCalculator = new JulianDayCalculator();
-  private final SunPositionCalculator sunPositionCalculator = new SunPositionCalculator();
+
 
   public Times calculate() {
     var julianDate =
@@ -60,7 +63,9 @@ public class PrayingTimesCalculator {
 
     var minAdjustTimes = applyOffsets(adjustedTimesHighLats, method);
 
-    return convertToTimes(minAdjustTimes);
+    var timesWithMidnight = calculateMidnight(minAdjustTimes, method);
+
+    return convertToTimes(timesWithMidnight);
   }
 
   public TimesDouble computePrayerTimes(
@@ -93,7 +98,7 @@ public class PrayingTimesCalculator {
                 sunPositionFajr,
                 true);
 
-    var sunrise = sunAngleTime(riseSetAngle(0), latitude, sunPositionSunrise, true);
+    var sunrise = sunAngleTime(SUNRISE_SUNSET_ANGLE, latitude, sunPositionSunrise, true);
 
     var dhuhr =
         midDay(sunPositionDhuhr)
@@ -101,7 +106,7 @@ public class PrayingTimesCalculator {
 
     var asr = asrTime(asrFactor(method.getAsrJuristicMethod()), latitude, sunPositionAsr);
 
-    var sunset = sunAngleTime(riseSetAngle(0), latitude, sunPositionSunset, false);
+    var sunset = sunAngleTime(SUNRISE_SUNSET_ANGLE, latitude, sunPositionSunset, false);
 
     var maghrib =
         method.getMinutesOffset().containsKey(TimeName.MAGHRIB)
@@ -121,12 +126,7 @@ public class PrayingTimesCalculator {
                 sunPositionSunset,
                 false);
 
-    var midnight =
-        method.getMidnightMode().equals(MidnightMode.JAFARI)
-            ? sunset + timeDiff(sunset, fajr) / 2
-            : sunset + timeDiff(sunset, sunrise) / 2;
-
-    return new TimesDouble(imsak, fajr, sunrise, dhuhr, asr, sunset, maghrib, isha, midnight);
+    return new TimesDouble(imsak, fajr, sunrise, dhuhr, asr, sunset, maghrib, isha, 0);
   }
 
   // compute mid-day time
@@ -134,16 +134,19 @@ public class PrayingTimesCalculator {
     return MathFunctions.fixHour(12 - sunPosition.equation());
   }
 
-  // return sun angle for sunset/sunrise
-  public double riseSetAngle(double time) {
-    var elevation = time;
-
-    return 0.833 + 0.0347 * Math.sqrt(elevation);
-  }
-
   // get asr shadow factor
   public double asrFactor(AsrJuristicMethod asrJuristicMethod) {
     return asrJuristicMethod.equals(AsrJuristicMethod.STANDARD) ? 1 : 2;
+  }
+
+  public TimesDouble calculateMidnight(TimesDouble times, CalculationMethods method) {
+
+    var midnight =
+        method.getMidnightMode().equals(MidnightMode.JAFARI)
+            ? times.sunset() + timeDiff(times.sunset(), times.fajr()) / 2
+            : times.sunset() + timeDiff(times.sunset(), times.sunrise()) / 2;
+
+    return new TimesDoubleBuilder(times).midnight(midnight).build();
   }
 
   // compute the time at which sun reaches a specific angle below horizon
