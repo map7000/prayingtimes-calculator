@@ -26,6 +26,7 @@ target
 hs_err_pid*
 replay_pid*
 
-.mvn/
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
 src/test/resources/*.json

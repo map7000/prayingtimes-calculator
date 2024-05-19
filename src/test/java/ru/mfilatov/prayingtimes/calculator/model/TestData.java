@@ -17,6 +17,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package ru.mfilatov.prayingtimes.calculator;
+package ru.mfilatov.prayingtimes.calculator.model;
 
-public record TestData(String imsak, String fajr, String sunrise, String dhuhr, String asr, String sunset, String maghrib, String isha, String midnight) {}
+public record TestData(
+    String imsak,
+    String fajr,
+    String sunrise,
+    String dhuhr,
+    String asr,
+    String sunset,
+    String maghrib,
+    String isha,
+    String midnight) {}

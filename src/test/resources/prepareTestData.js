@@ -20,13 +20,45 @@
 const fs = require('node:fs');
 
 eval(fs.readFileSync('PrayTimes.js').toString())
-prayTimes.setMethod("RUSSIA")
-console.log(prayTimes.getTimes(new Date(), [55.75222, 37.61556], 3))
 
-const content = prayTimes.getTimes(new Date(), [55.75222, 37.61556], 3);
+prayTimes.setMethod("MWL")
+prayTimes.adjust({ fajr: 16, isha: 15 })
+const russia = prayTimes.getTimes(new Date(), [55.75222, 37.61556], 3);
 
+prayTimes.setMethod("MWL")
+const mwl = prayTimes.getTimes(new Date(), [55.75222, 37.61556], 3)
 
-fs.writeFile('moscow.json', JSON.stringify(content), err => {
+prayTimes.setMethod("Makkah")
+const makkah = prayTimes.getTimes(new Date(), [55.75222, 37.61556], 3)
+
+prayTimes.setMethod("Tehran")
+const tehran = prayTimes.getTimes(new Date(), [55.75222, 37.61556], 3)
+
+fs.writeFile('Russia.json', JSON.stringify(russia), err => {
+    if (err) {
+      console.error(err);
+    } else {
+      // file written successfully
+    }
+  });
+
+  fs.writeFile('MWL.json', JSON.stringify(mwl), err => {
+    if (err) {
+      console.error(err);
+    } else {
+      // file written successfully
+    }
+  });
+
+  fs.writeFile('Makkah.json', JSON.stringify(makkah), err => {
+    if (err) {
+      console.error(err);
+    } else {
+      // file written successfully
+    }
+  });
+
+  fs.writeFile('Tehran.json', JSON.stringify(tehran), err => {
     if (err) {
       console.error(err);
     } else {

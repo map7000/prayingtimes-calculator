@@ -87,5 +87,4 @@ public class MathFunctions {
   public static double timeDiff(double time1, double time2) {
     return fixHour(time2 - time1);
   }
-
 }

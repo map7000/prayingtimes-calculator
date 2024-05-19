@@ -21,5 +21,5 @@ package ru.mfilatov.prayingtimes.calculator.enums;
 
 public enum MidnightMode {
   STANDARD, // Mid Sunset to Sunrise
-  JAFARI; // Mid Sunset to Fajr
+  JAFARI // Mid Sunset to Fajr
 }
