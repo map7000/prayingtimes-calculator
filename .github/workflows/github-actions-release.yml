@@ -2,9 +2,9 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "releases/**" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "releases/**" ]
 
 jobs:
   build:
@@ -25,6 +25,8 @@ jobs:
       - name: Generate test data
         working-directory: ./src/test/resources
         run: node prepareTestData.js
-      - name: Build with Maven
-        run: ./mvnw --batch-mode --update-snapshots package
-        
+      - name: Publish package
+        run: ./mvnw --batch-mode deploy
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
